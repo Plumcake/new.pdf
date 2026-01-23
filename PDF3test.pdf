@@ -16,7 +16,7 @@ endobj
 << /Type /Action
    /S /JavaScript
    /JS (
-      app.alert("1: JS ACTIVE - Basic execution works!");
+      app.alert("2: Viewer Info\\nType: " + vt + "\\nVer: " + vv + "\\nPlat: " + plat + "\\nLang: " + lang);
 
       // Viewer & platform probe
       try {
