@@ -1,0 +1,64 @@
+%PDF-1.7
+
+% Combined Probe PDF - URL Only - Jan 2026
+
+1 0 obj
+<< /Type /Catalog
+   /Pages 2 0 R
+   /OpenAction 3 0 R
+>>
+endobj
+
+2 0 obj
+<< /Type /Pages
+   /Kids [4 0 R]
+   /Count 1
+>>
+endobj
+
+3 0 obj
+<< /Type /Action
+   /S /JavaScript
+   /JS (
+
+      try {
+        var url = (this.URL !== undefined && this.URL !== null) ? this.URL : "n/a";
+        app.alert("Doc URL: " + url);
+      } catch (e) {
+        app.alert("URL error - " + e);
+      }
+
+   )
+>>
+endobj
+
+4 0 obj
+<< /Type /Page
+   /Parent 2 0 R
+   /MediaBox [0 0 400 300]
+   /Contents 5 0 R
+>>
+endobj
+
+5 0 obj
+<< /Length 100 >>
+stream
+BT /F1 14 Tf 50 250 Td (Combined Probe PDF) Tj ET
+BT /F1 12 Tf 50 220 Td (Open for alerts - check sequence on mobile) Tj ET
+endstream
+endobj
+
+xref
+0 6
+0000000000 65535 f 
+0000000015 00000 n 
+0000000075 00000 n 
+0000000130 00000 n 
+0000000300 00000 n 
+0000000450 00000 n 
+
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+550
+%%EOF
