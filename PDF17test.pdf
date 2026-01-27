@@ -1,0 +1,96 @@
+%PDF-1.7
+% Form Read Probe - Fixed Desktop Compatibility - Jan 2026
+1 0 obj
+<< /Type /Catalog
+   /Pages 2 0 R
+   /OpenAction 3 0 R
+   /AcroForm 6 0 R
+>>
+endobj
+2 0 obj
+<< /Type /Pages
+   /Kids [4 0 R]
+   /Count 1
+>>
+endobj
+3 0 obj
+<< /Type /Action
+   /S /JavaScript
+   /JS (
+      try {
+         var results = [];
+         var fld = this.getField("secretField");
+         if (fld && fld.value) {
+            results.push("Secret value stolen: " + fld.value);
+         } else {
+            results.push("No field or empty");
+         }
+         if (this.info && this.info.Title) {
+            results.push("Doc info Title: " + this.info.Title);
+         } else {
+            results.push("No doc info Title");
+         }
+         app.alert(results.join("\\n") || "Nothing readable found");
+      } catch(e) {
+         app.alert("Error during probe: " + e);
+      }
+   )
+>>
+endobj
+4 0 obj
+<< /Type /Page
+   /Parent 2 0 R
+   /MediaBox [0 0 400 300]
+   /Contents 5 0 R
+   /Annots [7 0 R]
+>>
+endobj
+5 0 obj
+<< /Length 118 >>
+stream
+BT
+/F1 14 Tf
+50 250 Td
+(Form Read Probe - Fixed) Tj
+ET
+BT
+/F1 12 Tf
+50 220 Td
+(Check alert for field read) Tj
+ET
+
+endstream
+endobj
+6 0 obj
+<< /Fields [7 0 R]
+   /DA (/Helv 0 Tf 0 g)
+>>
+endobj
+7 0 obj
+<< /Type /Annot
+   /Subtype /Widget
+   /Rect [100 100 300 150]
+   /T (secretField)
+   /FT /Tx
+   /V (Sensitive: user123 token=abcXYZ)
+   /DV (default secret value)
+   /DA (/Helv 12 Tf 0 g)
+>>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000018 00000 n 
+0000000085 00000 n 
+0000000145 00000 n 
+0000000350 00000 n 
+0000000520 00000 n 
+0000000700 00000 n 
+0000000780 00000 n 
+trailer
+<< /Size 8
+   /Root 1 0 R
+>>
+startxref
+920
+%%EOF
