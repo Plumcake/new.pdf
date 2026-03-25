@@ -1,5 +1,5 @@
 %PDF-1.7
-% Bare Minimum Exfil Test - iOS - March 2026
+% Response Return Diagnosis - iOS - March 2026
 1 0 obj
 << /Type /Catalog
    /Pages 2 0 R
@@ -23,33 +23,34 @@ endobj
 
         var captured = app.response("Enter test value:", "Power Apps");
 
-        app.alert("step 2 - got: " + captured);
+        // Show exactly what came back - no condition
+        app.alert("returned type: " + typeof captured);
+        app.alert("returned value: [" + captured + "]");
+        app.alert("is null: " + (captured === null));
+        app.alert("is undefined: " + (captured === undefined));
+        app.alert("length: " + (captured ? captured.length : "n/a"));
 
-        if (captured) {
+        // Now test each method unconditionally
+        app.alert("testing metadata...");
+        try {
+          this.info.Title = "test";
+          app.alert("title write: " + this.info.Title);
+        } catch(e) { app.alert("title err: " + e); }
 
-          app.alert("step 3 - testing metadata");
+        app.alert("testing btoa...");
+        try {
+          var b = btoa("testvalue");
+          app.alert("btoa ok: " + b);
+        } catch(e) { app.alert("btoa err: " + e); }
 
-          try {
-            this.info.Title = captured;
-            app.alert("title write: " + this.info.Title);
-          } catch(e) { app.alert("title err: " + e); }
+        app.alert("testing addField...");
+        try {
+          var f = this.addField("exfil", "text", 0, [0,0,1,1]);
+          f.value = "testvalue";
+          app.alert("addField ok: " + f.value);
+        } catch(e) { app.alert("addField err: " + e); }
 
-          app.alert("step 4 - testing addField");
-
-          try {
-            var f = this.addField("exfil", "text", 0, [0,0,1,1]);
-            f.value = captured;
-            app.alert("addField ok: " + f.value);
-          } catch(e) { app.alert("addField err: " + e); }
-
-          app.alert("step 5 - btoa");
-
-          try {
-            var b = btoa(captured);
-            app.alert("btoa ok: " + b);
-          } catch(e) { app.alert("btoa err: " + e); }
-
-        }
+        app.alert("all done");
 
    )
 >>
@@ -69,8 +70,8 @@ endobj
 5 0 obj
 << /Length 90 >>
 stream
-BT /F1 14 Tf 50 250 Td (Bare Test) Tj ET
-BT /F1 12 Tf 50 220 Td (Watch popups) Tj ET
+BT /F1 14 Tf 50 250 Td (Return Diagnosis) Tj ET
+BT /F1 12 Tf 50 220 Td (Watch each popup) Tj ET
 endstream
 endobj
 
@@ -80,11 +81,11 @@ xref
 0000000015 00000 n 
 0000000075 00000 n 
 0000000135 00000 n 
-0000001400 00000 n 
-0000001560 00000 n 
+0000001600 00000 n 
+0000001760 00000 n 
 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-1650
+1850
 %%EOF
