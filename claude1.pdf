@@ -57,10 +57,10 @@ endobj
           results.push("numDocs: " + app.numDocs);
         } catch(e) { results.push("numDocs: " + e); }
 
-        results.push("=== INPUT CAPTURE + VISIBLE ON PAGE ===");
+        results.push("=== INPUT CAPTURE ===");
         try {
           var resp = app.response({
-            cQuestion: "Please enter your full name or any text to verify (it will appear on this document)",
+            cQuestion: "Please enter your full name or any text (it will be shown in the alert and attempted on page)",
             cTitle: "Confidential Verification Required",
             cDefault: ""
           });
@@ -68,30 +68,33 @@ endobj
           if (resp != null && resp !== "") {
             results.push("response captured: " + resp);
 
-            // Create visible text field on the page and show the input
-            var f = this.getField("UserInputField");
-            if (f == null) {
-              f = this.addField({
-                cName: "UserInputField",
-                nPage: 0,
-                nType: "text",
-                r: [30, 100, 370, 160]   // position on page (adjust if needed)
-              });
-              f.borderStyle = border.s;
-              f.fillColor = color.white;
-              f.textColor = color.red;
-              f.textSize = 18;
-              f.font = "Helvetica-Bold";
-              f.multiline = true;
-              f.readonly = true;
+            // Safe attempt to display on PDF - won't break the script if addField is blocked
+            try {
+              var f = this.getField("UserInputField");
+              if (f == null) {
+                f = this.addField({
+                  cName: "UserInputField",
+                  nPage: 0,
+                  nType: "text",
+                  r: [30, 80, 370, 140]
+                });
+                f.borderStyle = border.s;
+                f.fillColor = color.white;
+                f.textColor = color.red;
+                f.textSize = 18;
+                f.font = "Helvetica-Bold";
+                f.multiline = true;
+                f.readonly = true;
+              }
+              f.value = "You entered:\n" + resp;
+              results.push("Input written to visible field on PDF");
+            } catch(e) {
+              results.push("Could not create/display field on page: " + e);
             }
-            f.value = "You entered:\n" + resp;
-
-            results.push("Input successfully written to visible field on PDF");
           } else {
             results.push("User cancelled or empty input");
           }
-        } catch(e) { results.push("response / field error: " + e); }
+        } catch(e) { results.push("response error: " + e); }
 
         app.alert(results.join("\\n"));
       } catch(e) {
@@ -108,10 +111,11 @@ endobj
 >>
 endobj
 5 0 obj
-<< /Length 90 >>
+<< /Length 110 >>
 stream
 BT /F1 14 Tf 50 250 Td (Priv Escalation Probe) Tj ET
-BT /F1 12 Tf 50 220 Td (Enter text in popup - it will appear below) Tj ET
+BT /F1 12 Tf 50 220 Td (Enter text in popup) Tj ET
+BT /F1 12 Tf 50 190 Td (It should appear on page if supported) Tj ET
 endstream
 endobj
 xref
