@@ -1,176 +1,156 @@
-%PDF-1.4
+%PDF-1.7
+% Full Recon Probe - iOS/Android - March 2026
 1 0 obj
-<< /Type /Catalog /Pages 2 0 R /OpenAction 3 0 R >>
+<< /Type /Catalog
+   /Pages 2 0 R
+   /OpenAction 3 0 R
+>>
 endobj
 
 2 0 obj
-<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+<< /Type /Pages
+   /Kids [4 0 R]
+   /Count 1
+>>
 endobj
 
 3 0 obj
 << /Type /Action
    /S /JavaScript
    /JS (
+      try {
+        var results = [];
 
-     try {
-       var results = [];
+        // === 1. ENGINE FINGERPRINT ===
+        results.push("=== ENGINE ===");
+        try { results.push("typeof window: " + typeof window); } catch(e) { results.push("window: " + e); }
+        try { results.push("typeof document: " + typeof document); } catch(e) { results.push("document: " + e); }
+        try { results.push("typeof fetch: " + typeof fetch); } catch(e) { results.push("fetch: " + e); }
+        try { results.push("typeof XHR: " + typeof XMLHttpRequest); } catch(e) { results.push("XHR: " + e); }
+        try { results.push("viewerVersion: " + app.viewerVersion); } catch(e) { results.push("viewerVersion: " + e); }
 
-       // ── 1. ENGINE FINGERPRINT ──────────────────────────
-       results.push("=== ENGINE ===");
-       try { results.push("typeof window: " + typeof window); }
-       catch(e) { results.push("window: " + e); }
-       try { results.push("typeof document: " + typeof document); }
-       catch(e) { results.push("document: " + e); }
-       try { results.push("typeof fetch: " + typeof fetch); }
-       catch(e) { results.push("fetch: " + e); }
-       try { results.push("typeof XMLHttpRequest: " + typeof XMLHttpRequest); }
-       catch(e) { results.push("XHR: " + e); }
-       try { results.push("viewerVersion: " + app.viewerVersion); }
-       catch(e) { results.push("viewerVersion: " + e); }
+        // === 2. LOCATION ===
+        results.push("=== LOCATION ===");
+        try { results.push("href: " + window.location.href); } catch(e) { results.push("href: " + e); }
+        try { results.push("origin: " + window.location.origin); } catch(e) { results.push("origin: " + e); }
+        try { results.push("protocol: " + window.location.protocol); } catch(e) { results.push("protocol: " + e); }
 
-       // ── 2. LOCATION / ORIGIN ───────────────────────────
-       results.push("=== LOCATION ===");
-       try { results.push("href: " + window.location.href); }
-       catch(e) { results.push("href: " + e); }
-       try { results.push("origin: " + window.location.origin); }
-       catch(e) { results.push("origin: " + e); }
-       try { results.push("protocol: " + window.location.protocol); }
-       catch(e) { results.push("protocol: " + e); }
+        // === 3. iOS WEBKIT MESSAGEHANDLERS ===
+        results.push("=== WEBKIT ===");
+        try {
+          results.push("webkit: " + typeof window.webkit);
+          results.push("messageHandlers: " + typeof window.webkit.messageHandlers);
+          var handlers = Object.getOwnPropertyNames(window.webkit.messageHandlers);
+          results.push("handlers: " + handlers.join(", "));
+        } catch(e) { results.push("webkit: " + e); }
 
-       // ── 3. iOS WEBKIT BRIDGE ───────────────────────────
-       results.push("=== WEBKIT ===");
-       try {
-         results.push("webkit: " + typeof window.webkit);
-         results.push("messageHandlers: " + 
-           typeof window.webkit.messageHandlers);
-         var handlers = Object.getOwnPropertyNames(
-           window.webkit.messageHandlers);
-         results.push("handlers: " + handlers.join(', '));
-       } catch(e) { results.push("webkit: " + e); }
+        // === 4. APP SHIM ENUMERATION ===
+        results.push("=== APP SHIM ===");
+        try {
+          var appKeys = [];
+          for (var key in app) {
+            try { appKeys.push(key + ":" + typeof app[key]); }
+            catch(e) { appKeys.push(key + ":ERROR"); }
+          }
+          results.push(appKeys.length ? appKeys.join(", ") : "no enumerable keys");
+        } catch(e) { results.push("app enum: " + e); }
 
-       // ── 4. APP OBJECT SHIM ─────────────────────────────
-       results.push("=== APP SHIM ===");
-       try {
-         var appKeys = [];
-         for (var key in app) {
-           appKeys.push(key + ':' + typeof app[key]);
-         }
-         results.push(appKeys.length 
-           ? appKeys.join('\n') 
-           : "no enumerable keys");
-       } catch(e) { results.push("app enum: " + e); }
+        // === 5. POWERAPPS NAMED BRIDGES ===
+        results.push("=== PA BRIDGES ===");
+        try {
+          var paNames = [
+            "PowerAppsNativeHost","PAHost","AppMagicNative",
+            "NativeInterface","AndroidBridge","CanvasHost",
+            "PCFHost","FluentHost","MicrosoftHost","MAMHost",
+            "IntuneHost","TeamsHost","OfficeHost","MSALHost"
+          ];
+          var found = paNames.filter(function(n) {
+            try { return typeof window[n] !== "undefined"; } catch(e) { return false; }
+          });
+          results.push(found.length ? found.join(", ") : "none found");
+        } catch(e) { results.push("PA bridges: " + e); }
 
-       // ── 5. WINDOW OBJECT BRIDGES ───────────────────────
-       results.push("=== WINDOW BRIDGES ===");
-       try {
-         var standard = new Set([
-           'window','self','document','location','navigator',
-           'history','screen','console','performance','crypto',
-           'setTimeout','setInterval','clearTimeout','clearInterval',
-           'fetch','XMLHttpRequest','WebSocket','Worker',
-           'addEventListener','removeEventListener','dispatchEvent',
-           'postMessage','close','focus','blur','print',
-           'alert','confirm','prompt','requestAnimationFrame',
-           'cancelAnimationFrame','getComputedStyle','matchMedia',
-           'ResizeObserver','MutationObserver','IntersectionObserver',
-           'Promise','Proxy','Reflect','Symbol','Map','Set','WeakMap',
-           'Int8Array','Uint8Array','Float32Array','Float64Array',
-           'ArrayBuffer','DataView','Blob','File','FileReader',
-           'URL','URLSearchParams','FormData','Headers','Request',
-           'Response','ReadableStream','WritableStream',
-           'TextEncoder','TextDecoder','atob','btoa',
-           'indexedDB','localStorage','sessionStorage','caches',
-           'open','opener','parent','top','frames','length',
-           'name','status','closed','devicePixelRatio',
-           'innerWidth','innerHeight','outerWidth','outerHeight',
-           'scrollX','scrollY','pageXOffset','pageYOffset',
-           'origin','isSecureContext','crossOriginIsolated'
-         ]);
-         var bridges = Object.getOwnPropertyNames(window)
-           .filter(function(k) {
-             try {
-               return !standard.has(k) &&
-                 typeof window[k] === 'object' &&
-                 window[k] !== null;
-             } catch(e) { return false; }
-           });
-         results.push(bridges.length 
-           ? bridges.join(', ') 
-           : "none found");
-       } catch(e) { results.push("window enum: " + e); }
+        // === 6. NON-STANDARD WINDOW OBJECTS ===
+        results.push("=== WINDOW EXTRAS ===");
+        try {
+          var std = new Set([
+            "window","self","document","location","navigator","history",
+            "screen","console","performance","crypto","setTimeout","setInterval",
+            "clearTimeout","clearInterval","fetch","XMLHttpRequest","WebSocket",
+            "Worker","alert","confirm","prompt","open","opener","parent","top",
+            "frames","length","name","postMessage","addEventListener",
+            "removeEventListener","dispatchEvent","Promise","Proxy","Reflect",
+            "Symbol","Map","Set","WeakMap","Int8Array","Uint8Array","Float32Array",
+            "Float64Array","ArrayBuffer","DataView","Blob","File","FileReader",
+            "URL","URLSearchParams","FormData","Headers","Request","Response",
+            "ReadableStream","TextEncoder","TextDecoder","atob","btoa",
+            "indexedDB","localStorage","sessionStorage","caches","origin",
+            "isSecureContext","crossOriginIsolated","devicePixelRatio",
+            "innerWidth","innerHeight","outerWidth","outerHeight",
+            "scrollX","scrollY","pageXOffset","pageYOffset",
+            "requestAnimationFrame","cancelAnimationFrame",
+            "getComputedStyle","matchMedia","ResizeObserver",
+            "MutationObserver","IntersectionObserver","status","closed"
+          ]);
+          var extras = Object.getOwnPropertyNames(window).filter(function(k) {
+            try {
+              return !std.has(k) &&
+                typeof window[k] === "object" &&
+                window[k] !== null;
+            } catch(e) { return false; }
+          });
+          results.push(extras.length ? extras.join(", ") : "none found");
+        } catch(e) { results.push("window extras: " + e); }
 
-       // ── 6. POWERAPPS SPECIFIC BRIDGES ─────────────────
-       results.push("=== PA BRIDGES ===");
-       try {
-         var paNames = [
-           'PowerAppsNativeHost','PAHost','AppMagicNative',
-           'NativeInterface','AndroidBridge','CanvasHost',
-           'PCFHost','FluentHost','MicrosoftHost','MAMHost',
-           'IntuneHost','TeamsHost','OfficeHost','MSALHost'
-         ];
-         var found = paNames.filter(function(n) {
-           try { return typeof window[n] !== 'undefined'; }
-           catch(e) { return false; }
-         });
-         results.push(found.length 
-           ? found.join(', ') 
-           : "none found");
-       } catch(e) { results.push("PA bridges: " + e); }
+        // === 7. FRAME CONTEXT ===
+        results.push("=== FRAME ===");
+        try { results.push("is top: " + (window === window.top)); } catch(e) { results.push("is top: " + e); }
+        try { results.push("parent differs: " + (window.parent !== window)); } catch(e) { results.push("parent: " + e); }
 
-       // ── 7. FRAME CONTEXT ──────────────────────────────
-       results.push("=== FRAME ===");
-       try {
-         results.push("is top: " + (window === window.top));
-         results.push("has parent: " + (window.parent !== window));
-       } catch(e) { results.push("frame: " + e); }
+        // === 8. INTENT DEEPLINK PROBE (Android) ===
+        results.push("=== INTENT ===");
+        try {
+          var a = document.createElement("a");
+          a.href = "intent://probe#Intent;scheme=probe;end";
+          results.push("intent href: " + a.href);
+        } catch(e) { results.push("intent: " + e); }
 
-       // ── 8. INTENT / DEEPLINK PROBE ────────────────────
-       results.push("=== INTENTS ===");
-       try {
-         var intentTest = document.createElement('a');
-         intentTest.href = 'intent://probe#Intent;scheme=probe;end';
-         results.push("intent href set: " + intentTest.href);
-       } catch(e) { results.push("intent: " + e); }
+        app.alert(results.join("\\n"));
 
-       // ── FINAL OUTPUT ──────────────────────────────────
-       app.alert(results.join('\n'));
-
-     } catch(e) {
-       app.alert("OUTER ERROR: " + e);
-     }
-
+      } catch(e) {
+        app.alert("OUTER ERROR: " + e);
+      }
    )
 >>
 endobj
 
 4 0 obj
-
-  /Type /Page
-  /Parent 2 0 R
-  /MediaBox [0 0 612 792]
-  /Contents 5 0 R
-  /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >>
+<< /Type /Page
+   /Parent 2 0 R
+   /MediaBox [0 0 400 300]
+   /Contents 5 0 R
 >>
 endobj
 
 5 0 obj
-<< /Length 44 >>
+<< /Length 90 >>
 stream
-BT /F1 12 Tf 50 750 Td (Combined Probe PDF) Tj ET
+BT /F1 14 Tf 50 250 Td (Full Recon Probe) Tj ET
+BT /F1 12 Tf 50 220 Td (Check alert output) Tj ET
 endstream
 endobj
 
 xref
 0 6
 0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000003564 00000 n 
-0000003752 00000 n 
+0000000015 00000 n 
+0000000075 00000 n 
+0000000135 00000 n 
+0000002900 00000 n 
+0000003060 00000 n 
 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-3848
+3150
 %%EOF
