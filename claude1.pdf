@@ -1,5 +1,5 @@
 %PDF-1.7
-% Clean Write Test - No response() - iOS - March 2026
+% this Identity Test - iOS - March 2026
 1 0 obj
 << /Type /Catalog
    /Pages 2 0 R
@@ -19,50 +19,38 @@ endobj
    /S /JavaScript
    /JS (
 
-        app.alert("step 1: starting write tests");
+        app.alert("step 1");
 
-        // === METADATA WRITES ===
-        try {
-          this.info.Title = "PWNED_TITLE";
-          app.alert("title: " + this.info.Title);
-        } catch(e) { app.alert("title err: " + e); }
+        // What is this?
+        try { app.alert("this type: " + typeof this); } catch(e) { app.alert("this type err: " + e); }
 
-        try {
-          this.info.Subject = "PWNED_SUBJECT";
-          app.alert("subject: " + this.info.Subject);
-        } catch(e) { app.alert("subject err: " + e); }
+        app.alert("step 2");
 
-        try {
-          this.info.Author = "PWNED_AUTHOR";
-          app.alert("author: " + this.info.Author);
-        } catch(e) { app.alert("author err: " + e); }
+        // Does this have info at all?
+        try { app.alert("this.info: " + typeof this.info); } catch(e) { app.alert("this.info err: " + e); }
 
-        try {
-          this.info.Keywords = "PWNED_KEYWORDS";
-          app.alert("keywords: " + this.info.Keywords);
-        } catch(e) { app.alert("keywords err: " + e); }
+        app.alert("step 3");
 
-        // === FORM FIELD WRITE ===
-        try {
-          var f = this.addField("exfil", "text", 0, [0,0,1,1]);
-          f.value = "PWNED_FIELD";
-          app.alert("addField value: " + f.value);
-        } catch(e) { app.alert("addField err: " + e); }
+        // Try info without this
+        try { app.alert("info direct: " + typeof info); } catch(e) { app.alert("info direct err: " + e); }
 
-        // === BTOA ===
-        try {
-          var b = btoa("PWNED_DATA");
-          app.alert("btoa: " + b);
-        } catch(e) { app.alert("btoa err: " + e); }
+        app.alert("step 4");
 
-        // === SETТIMEOUT WRITE AFTER DELAY ===
+        // Is there a doc object?
+        try { app.alert("doc: " + typeof doc); } catch(e) { app.alert("doc err: " + e); }
+
+        app.alert("step 5");
+
+        // Try event object
+        try { app.alert("event: " + typeof event); } catch(e) { app.alert("event err: " + e); }
+
+        app.alert("step 6");
+
+        // Simple math - does basic JS work?
         try {
-          app.setTimeOut(
-            "this.info.Title = 'DELAYED_WRITE'; app.alert('delayed title: ' + this.info.Title);",
-            500
-          );
-          app.alert("setTimeout write: queued");
-        } catch(e) { app.alert("setTimeout err: " + e); }
+          var x = 1 + 1;
+          app.alert("math: " + x);
+        } catch(e) { app.alert("math err: " + e); }
 
         app.alert("all done");
 
@@ -84,8 +72,8 @@ endobj
 5 0 obj
 << /Length 90 >>
 stream
-BT /F1 14 Tf 50 250 Td (Clean Write Test) Tj ET
-BT /F1 12 Tf 50 220 Td (Watch each popup) Tj ET
+BT /F1 14 Tf 50 250 Td (this Identity Test) Tj ET
+BT /F1 12 Tf 50 220 Td ( ) Tj ET
 endstream
 endobj
 
@@ -95,11 +83,11 @@ xref
 0000000015 00000 n 
 0000000075 00000 n 
 0000000135 00000 n 
-0000001600 00000 n 
-0000001760 00000 n 
+0000001500 00000 n 
+0000001660 00000 n 
 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-1850
+1750
 %%EOF
